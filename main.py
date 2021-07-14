@@ -1,5 +1,6 @@
 from data.get_data import Requests
 from strat.generic import Strategy
+from strat.equal_weight_sp500 import EWSP
 
 
 def print_hi(name):
@@ -14,3 +15,5 @@ if __name__ == "__main__":
     print(gen_strategy)
     gen_strategy.set_max_equity(100)
     print(gen_strategy)
+
+    eqwe = EWSP()

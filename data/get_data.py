@@ -1,3 +1,5 @@
+# TODO: Add request functionality
+
 class Requests:
     def __init__(self):
         pass
