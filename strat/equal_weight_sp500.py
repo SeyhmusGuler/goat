@@ -1,8 +1,6 @@
 import pandas as pd
-import numpy as np
-import requests
 import math
-from secrets import stock_endpoint_url
+from data.get_data import get_latest_price
 
 SP500_SYMBOLS_TEXTFILE = 'data/sp500_symbols.txt'
 
@@ -12,39 +10,24 @@ def get_company_list_from_file():
     return stocks
 
 
-def get_price_from_api(symbol):
-    pass
-
-
-def get_market_cap_from_api(symbol):
-    pass
-
-
-def get_price_and_market_cap_from_api(symbol):
-    api_symbol_url = stock_endpoint_url(symbol)
-    data = requests.get(api_symbol_url)
-    if data.status_code == 200:
-        data_json = data.json()
-        latest_price = data_json["latestPrice"]
-        market_cap = data_json["marketCap"]
-        return latest_price, market_cap
-    else:
-        ValueError("Status code returned from IEX Cloud API is not 200.")
-        return None, None
-
-
-def create():
+def calculate_number_of_shares_to_buy(value):
     company_list = get_company_list_from_file()
-    for symbol in company_list[:2]:
-        price, market_cap = get_price_and_market_cap_from_api(symbol)
-        if price and market_cap:
-            print(f"Symbol: {symbol}, latest price: {price}, market capitalization: {market_cap}")
+    dollar_amount_per_stock = value / len(company_list)
+    n_shares_to_buy = {}
+    for symbol in company_list[:10]:
+        share_price = get_latest_price(symbol)
+        n_shares_to_buy[symbol] = math.floor(dollar_amount_per_stock/share_price)
+    return n_shares_to_buy
 
 
-class EWSP:
-    def __init__(self, max_eq=1000):
-        self.max_eq = max_eq
-        create()
+class EqualWeightSP:
+    def __init__(self, dollar_amount=1000):
+        self.tot_value = dollar_amount
+        self.n_shares = calculate_number_of_shares_to_buy(self.tot_value)
+
+    def __str__(self):
+        return f'Equal weight sp500 with {self.tot_value} total value. Allocations: {self.n_shares}'
+
 
 
 
