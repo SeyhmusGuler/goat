@@ -30,7 +30,6 @@ def get_json_data_from_stock_endpoint(symbol):
 
 def get_latest_price(symbol):
     data = get_json_data_from_stock_endpoint(symbol)
-    time.sleep(0.01)
     return data["latestPrice"]
 
 
