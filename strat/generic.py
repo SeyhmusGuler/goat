@@ -1,5 +1,6 @@
 from utils.excel import save_to_excel_file
 
+
 class Strategy:
     def __init__(self, max_eq=float("inf")):
         self.name = "OPStrategy"
@@ -17,4 +18,3 @@ class Strategy:
 
     def save_to_excel(self):
         save_to_excel_file(f"{self.name}_strategy.excel", self.position)
-
