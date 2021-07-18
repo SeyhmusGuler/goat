@@ -1,9 +1,12 @@
 import pandas
+from os.path import splitext
 
 
 def save_to_excel_file(excel_filename, dataframe):
-    writer = pandas.ExcelWriter(excel_filename+'.xlsx', engine='xlsxwriter')
-    dataframe.to_excel(writer, excel_filename, index=False)
+    writer = pandas.ExcelWriter(excel_filename, engine='xlsxwriter')
+    base = splitext(excel_filename)[0]
+    print(base)
+    dataframe.to_excel(writer, base, index=False)
 
     background_color = '#0a0a23'
     font_color = '#ffffff'
@@ -41,7 +44,9 @@ def save_to_excel_file(excel_filename, dataframe):
         'D': ['Number of Shares to Buy', integer_format]
     }
 
-    for column in column_format.keys():
-        writer.sheets[excel_filename].set_column(f"{column}:{column}",
-                                                 18,
-                                                 column_format[column])
+    for column in column_format:
+        writer.sheets[base].write(f"{column}1", column_format[column][0], column_format[column][1])
+        writer.sheets[base].set_column(f"{column}:{column}",
+                                       18,
+                                       column_format[column][1])
+    writer.save()
