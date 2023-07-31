@@ -1,0 +1,15 @@
+# python
+__pycache__/*
+
+# pytest cache
+.pytest_cache/*
+
+
+# vscode
+.vscode/*
+
+#cpython
+*.pyc
+
+#pyenv local
+.python-version
