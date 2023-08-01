@@ -1,4 +1,5 @@
 from utils.excel import save_to_excel_file
+import pandas as pd
 
 
 class Strategy:
