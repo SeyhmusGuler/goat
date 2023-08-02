@@ -1,3 +1,5 @@
+from typing import Union
+
 def multiply_by_2(x: int) -> int:
     """
     Multiplies the input integer x by 2.
@@ -21,7 +23,7 @@ def multiply_by_2(x: int) -> int:
         return x * 2
     raise TypeError("The type of the input wasn't int.")
     
-def add_two(x):
+def add_two(x: Union[int, float]) -> Union[int, float]:
     """
     Adds 2 to the input and returns the result.
 
