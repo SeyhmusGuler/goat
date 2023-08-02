@@ -1,3 +1,21 @@
+[project]
+name = "goat"
+version = "0.0.1a0"
+description = "guler's op algo trading"
+readme = "README.md"
+authors = [
+    {name = "Semo Guler", email = "semoooguleeer@gmail.com"},
+]
+maintainers = [
+    {name = "Apo Guler", email = "place@holder.com"},
+]
+keywords = ["goat", "algo"]
+
+dependencies = [
+    "pandas",
+    "numpy",
+]
+
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
