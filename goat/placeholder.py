@@ -21,7 +21,7 @@ def multiply_by_2(x: int) -> int:
         return x * 2
     raise TypeError("The type of the input wasn't int.")
     
-def add_two(x):
+def add_two(x: int) -> int:
     """
     Adds 2 to the input and returns the result.
 
