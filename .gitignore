@@ -13,3 +13,12 @@ __pycache__/*
 
 #pyenv local
 .python-version
+
+#build
+build/*
+
+#dist
+dist/*
+
+#goat.egg
+goat.egg-info/*
