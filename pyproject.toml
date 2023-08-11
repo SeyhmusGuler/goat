@@ -6,10 +6,21 @@ build-backend = "setuptools.build_meta"
 name = "goat"
 version = "0.0.1a0"
 requires-python = ">=3.9"
-dependencies = ["pandas", "numpy", "matplotlib"]
+
+dependencies = [
+    "pandas",
+    "numpy",
+    "matplotlib",
+]
 
 [project.optional-dependencies]
-dev = ["pytest", "black"]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-describe",
+    "black",
+    "ruff",
+]
 
 [tool.setuptools]
 packages = ["goat"]
