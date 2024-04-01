@@ -20,7 +20,7 @@ def multiply_by_2(x: int) -> int:
     TypeError
         If the type of input isn't int.
     """
-    if type(x) == int:
+    if isinstance(x, int):
         return x * 2
     raise TypeError("The type of the input wasn't int.")
 
@@ -39,6 +39,6 @@ def add_two(x: Union[int, float]) -> Union[int, float]:
         int, float: Input + 2
     """
 
-    if type(x) == int or type(x) == float:
+    if isinstance(x, int) or isinstance(x, float):
         return x + 2
     raise TypeError("Input is not a number.")
