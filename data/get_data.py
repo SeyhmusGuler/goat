@@ -17,6 +17,7 @@ def get_data_with_request_limits(data_request_func):
         data = data_request_func(*args, **kwargs)
         time.sleep(WAIT_TIME_PER_REQUEST)
         return data
+
     return wrapper
 
 
@@ -60,6 +61,6 @@ def get_fields(symbol, *fields):
     return result
 
 
-if __name__ == '__main__':
-    batch_url = batch_call_url(['ABBV', 'ABC', 'ABMD', 'ABT'])
+if __name__ == "__main__":
+    batch_url = batch_call_url(["ABBV", "ABC", "ABMD", "ABT"])
     print(batch_url)
