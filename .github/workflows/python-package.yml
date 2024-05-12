@@ -23,12 +23,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        python -m pip install ruff pytest
-        if [ -f requirements/dev_3.12.txt ]; then pip install -r requirements/dev_3.12.txt; fi
+        python -m pip install -r requirements/dev_3.12.txt
     - name: Lint with ruff
       run: |
-        ruff check goat --fix
-        ruff format goat
+        ruff check --fix
+    - name: Format with ruff
+      run: |
+        ruff format
     - name: Test with pytest
       run: |
         pytest

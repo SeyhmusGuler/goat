@@ -1,4 +1,4 @@
 # goat
 guler's op algo trading.
 
-Status: wip
+Status: wip, going well x2 (from vscode)

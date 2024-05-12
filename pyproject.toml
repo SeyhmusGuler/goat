@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "goat"
-version = "0.0.1a0"
+version = "0.0.2a0"
 requires-python = ">=3.12"
 description = "A simple, fast, and flexible trader program."
 
@@ -34,3 +34,19 @@ dev = [
 
 [tool.setuptools]
 packages = ["goat"]
+
+
+[tool.ruff]
+line-length = 120
+indent-width = 4
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
