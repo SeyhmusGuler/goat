@@ -6,10 +6,31 @@ build-backend = "setuptools.build_meta"
 name = "goat"
 version = "0.0.1a0"
 requires-python = ">=3.9"
-dependencies = ["pandas", "numpy", "matplotlib"]
+description = "A simple, fast, and flexible trader program."
+
+dependencies = [
+    "pandas",
+]
 
 [project.optional-dependencies]
-dev = ["pytest", "black"]
+dev = [
+    "bandit",
+    "coverage",
+    "docstr-coverage",
+    "mypy",
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "pytest-describe",
+    "pytest-env",
+    "pytest-xdist",
+    "pyupgrade",
+    "radon",
+    "ruff",
+    "types-pkg_resources",
+    "tox",
+    "validate-pyproject[all]",
+]
 
 [tool.setuptools]
 packages = ["goat"]
