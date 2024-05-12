@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "goat"
 version = "0.0.2a0"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 description = "A simple, fast, and flexible trader program."
 
 dependencies = [

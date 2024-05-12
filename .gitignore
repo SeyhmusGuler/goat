@@ -22,3 +22,6 @@ dist/*
 
 #goat.egg
 goat.egg-info/*
+
+# coverage
+.coverage
