@@ -25,3 +25,6 @@ goat.egg-info/*
 
 # coverage
 .coverage
+
+# tox
+.tox/*

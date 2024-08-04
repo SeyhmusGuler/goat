@@ -27,8 +27,9 @@ dev = [
     "pyupgrade",
     "radon",
     "ruff",
-    "types-pkg_resources",
+    "types-setuptools",
     "tox",
+    "uv",
     "validate-pyproject[all]",
 ]
 
