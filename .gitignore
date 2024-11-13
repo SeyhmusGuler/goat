@@ -28,3 +28,6 @@ goat.egg-info/*
 
 # tox
 .tox/*
+
+# hypothesis
+.hypothesis/*
