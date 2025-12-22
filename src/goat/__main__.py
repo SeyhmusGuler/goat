@@ -1,6 +1,3 @@
-from click import clear
-
-
 def main() -> None:
     while True:
         pass
