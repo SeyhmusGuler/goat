@@ -1,23 +1,22 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build>=0.9.18,<0.10.0"]
+build-backend = "uv_build"
 
 [project]
 name = "goat"
 version = "0.0.2a0"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 description = "A simple, fast, and flexible trader program."
 
 dependencies = [
-    "pandas",
+    "polars",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "bandit",
     "coverage",
     "docstr-coverage",
-    "mypy",
     "pre-commit",
     "pytest",
     "pytest-cov",
@@ -27,21 +26,17 @@ dev = [
     "pyupgrade",
     "radon",
     "ruff",
-    "types-setuptools",
-    "tox",
     "uv",
-    "validate-pyproject[all]",
-    "hypothesis[numpy, django]",
+    "ty",
 ]
 
-[tool.setuptools]
+[tool.uv.build-backend]
 packages = ["goat"]
-
 
 [tool.ruff]
 line-length = 120
 indent-width = 4
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F"]
