@@ -17,6 +17,7 @@ dev = [
     "bandit",
     "coverage",
     "docstr-coverage",
+    "nox",
     "pre-commit",
     "pytest",
     "pytest-cov",

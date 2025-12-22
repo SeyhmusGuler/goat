@@ -12,4 +12,16 @@ jobs:
         python-version: ["3.13", "3.14"]
 
     steps:
-    - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
+      - name: UV setup
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: uv sync
+      - name: Lint
+        run: uv run ruff check .
+      - name: Typecheck
+        run: uv run ty check
+      - name: Tests
+        run: uv run pytest -q
