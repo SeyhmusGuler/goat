@@ -11,6 +11,8 @@ description = "A simple, fast, and flexible trader program."
 dependencies = [
     "polars",
     "pydantic>=2.12.5",
+    "pydantic-settings>=2.12.0",
+    "structlog>=25.5.0",
 ]
 
 [dependency-groups]

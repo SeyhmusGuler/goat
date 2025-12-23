@@ -31,3 +31,6 @@ goat.egg-info/*
 
 # hypothesis
 .hypothesis/*
+
+# secrets
+.env*
