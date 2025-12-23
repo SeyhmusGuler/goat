@@ -1,10 +1,21 @@
 from enum import StrEnum
-from pydantic import AwareDatetime
 
 
 class Symbol(StrEnum):
-    pass
+    AAPL = "AAPL"
+    TSLA = "TSLA"
 
 
-class DateTime(AwareDatetime):
-    pass
+class Action(StrEnum):
+    BUY = "buy"
+    SELL = "sell"
+
+
+class Direction(StrEnum):
+    BUY = "buy"
+    SELL = "sell"
+
+
+class OrderType(StrEnum):
+    LIMIT = "limit"
+    MARKET = "market"

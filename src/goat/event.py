@@ -1,11 +1,11 @@
 from __future__ import annotations
+import uuid
 from typing import TYPE_CHECKING
 
-from argparse import Action
 from goat.strategy import StrategyID
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, AwareDatetime
 from typing import Literal
-from goat.enums import DateTime, Symbol
+from goat.enums import Symbol, Action, Direction, OrderType
 
 
 if TYPE_CHECKING:
@@ -29,42 +29,66 @@ class EventForTypeChecking:
 class Event(BaseModel):
     """Base class for events."""
 
-    type: Literal["MARKET", "SIGNAL", "ORDER", "FILL"]
+    event_type: Literal["MARKET", "SIGNAL", "ORDER", "FILL"] = Field(..., alias="type")
 
 
 class MarketEvent(Event):
     """Market event."""
 
-    def __init__(self) -> None:
-        super().__init__(type="MARKET")
+    event_type: Literal["MARKET"] = "MARKET"
 
 
 class SignalEvent(Event):
     """Signal event."""
 
-    def __init__(
-        self,
-        strategy_id: StrategyID,
-        symbol: Symbol,
-        action: Action,
-        datetime: DateTime,
-    ) -> None:
-        super().__init__(type="SIGNAL")
-        self.strategy_id = strategy_id
-        self.symbol = symbol
-        self.action = action
-        self.datetime = datetime
+    event_type: Literal["SIGNAL"] = "SIGNAL"
+    strategy_id: StrategyID
+    symbol: Symbol
+    action: Action
+    datetime: AwareDatetime
 
 
 class OrderEvent(Event):
     """Order event."""
 
-    def __init__(self) -> None:
-        super().__init__(type="ORDER")
+    event_type: Literal["ORDER"] = "ORDER"
+    order_id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    symbol: Symbol
+    direction: Direction
+    order_type: OrderType
+    quantity: int = Field(..., gt=0)
+    price: float
 
 
 class FillEvent(Event):
     """Fill event."""
 
-    def __init__(self) -> None:
-        super().__init__(type="FILL")
+    event_type: Literal["FILL"] = "FILL"
+    fill_type: Literal["PARTIAL", "FULL"]
+    order_id: uuid.UUID
+    quantity: int = Field(..., gt=0)
+    price: float
+    datetime: AwareDatetime
+
+
+if __name__ == "__main__":
+    from datetime import datetime, timezone
+
+    event = MarketEvent()
+    print(event)
+    order_event = OrderEvent(
+        symbol=Symbol("AAPL"),
+        direction=Direction.BUY,
+        order_type=OrderType.LIMIT,
+        quantity=10,
+        price=100.0,
+    )
+    fill_event = FillEvent(
+        fill_type="PARTIAL",
+        order_id=order_event.order_id,
+        quantity=5,
+        price=100.0,
+        datetime=datetime.now(tz=timezone.utc),
+    )
+    print(order_event)
+    print(fill_event)
