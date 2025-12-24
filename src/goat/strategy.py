@@ -1,6 +1,7 @@
 from enum import StrEnum
 from typing import Callable, Protocol
 
+from goat.data_handler import Candle
 from goat.enums import Action, Symbol
 
 
@@ -19,11 +20,11 @@ class Strategy(Protocol):
     symbol: Symbol
     on_signal: Callable[[object], None] | None  # SignalEvent callback
 
-    def calculate_signal(self, close_price: float) -> Action | None:
+    def calculate_signal(self, candle: Candle) -> Action | None:
         """Calculate trading signal from new price data.
 
         Args:
-            close_price: The closing price of the latest candle.
+            candle: The latest candle.
 
         Returns:
             Action.BUY, Action.SELL, or None if no signal.
@@ -55,6 +56,8 @@ class MovingAverageCrossStrategy:
         symbol: Symbol,
         on_signal: Callable[[object], None] | None = None,
     ):
+        if short_window >= long_window:
+            raise ValueError("short_window must be less than long_window")
         self.short_window = short_window
         self.long_window = long_window
         self.symbol = symbol
@@ -63,16 +66,16 @@ class MovingAverageCrossStrategy:
         self._prev_short_ma: float | None = None
         self._prev_long_ma: float | None = None
 
-    def calculate_signal(self, close_price: float) -> Action | None:
+    def calculate_signal(self, candle: Candle) -> Action | None:
         """Calculate signal based on moving average crossover.
 
         Args:
-            close_price: The closing price of the latest candle.
+            candle: The latest candle.
 
         Returns:
             Action.BUY on golden cross, Action.SELL on death cross, None otherwise.
         """
-        self._price_history.append(close_price)
+        self._price_history.append(candle.close)
 
         # Need enough data for long window
         if len(self._price_history) < self.long_window:
@@ -130,7 +133,7 @@ if __name__ == "__main__":
     price = 100.0
     for i in range(50):
         price += random.uniform(-2, 2)
-        signal = strategy.calculate_signal(price)
+        signal = strategy.calculate_signal(Candle(close=price))
         if signal:
             print(f"Day {i}: Price={price:.2f}, Signal={signal}")
 

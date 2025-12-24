@@ -56,7 +56,7 @@ flowchart TB
     EQ --> P
     P -->|candle| S1 & S2 & SN
     S1 & S2 & SN -->|SignalEvent| EQ
-    P -->|OrderEvent| EH
+    P -->|submit_order| EH
     EH --> OB
     EH --> EP
     EH -->|FillEvent| EQ
@@ -82,10 +82,11 @@ sequenceDiagram
     P->>S: calculate_signal(candle)
     S->>EQ: SignalEvent (BUY/SELL)
     EQ->>P: process SignalEvent
-    P->>EH: OrderEvent
+    P->>EH: submit_order(symbol, direction, qty, price)
     EH->>EH: match internally (OrderBook)
     EH->>EH: execute externally
-    EH->>EQ: FillEvent
+    EH-->>P: returns (Order, list[Fill])
+    P->>EQ: FillEvent (from fills)
     EQ->>P: process FillEvent
     P->>P: update positions
 ```
@@ -96,8 +97,10 @@ sequenceDiagram
 |-------|---------|----------|----------|
 | `MarketEvent` | New candle available | (minimal) | Portfolio → Strategy |
 | `SignalEvent` | Strategy generates signal | symbol, action, strategy_id | Portfolio |
-| `OrderEvent` | Portfolio decides to trade | symbol, direction, quantity, price | ExecutionHandler |
 | `FillEvent` | Order executed | order_id, quantity, price, commission | Portfolio |
+
+> **Note:** `OrderEvent` exists in the codebase but is not currently used in the event flow. 
+> Portfolio directly calls `ExecutionHandler.submit_order()` instead of creating OrderEvents.
 
 ---
 
@@ -207,6 +210,8 @@ classDiagram
     class Strategy {
         <<Protocol>>
         +id: StrategyID
+        +symbol: Symbol
+        +on_signal: SignalCallback
         +run() None
         +stop() None
         +calculate_signal(candle: Candle) Action | None
@@ -454,8 +459,8 @@ while True:
             # Convert signal to order
             order, fills = execution_handler.submit_order(
                 symbol=event.symbol,
-                direction=Direction.BUY if event.action == "buy" else Direction.SELL,
-                order_type=OrderType.MARKET,
+                direction=Direction.BUY if event.action == Action.BUY else Direction.SELL,
+                order_type=OrderType.LIMIT,
                 quantity=10,
                 price=candle.close,
                 strategy_id=event.strategy_id,

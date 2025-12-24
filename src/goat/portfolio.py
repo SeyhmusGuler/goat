@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 from goat.data_handler import Candle, CandleDataHandler
 from goat.enums import Action, Direction, OrderType, Symbol
-from goat.event import EventQueue, FillEvent, MarketEvent, SignalEvent
+from goat.event import FillEvent, MarketEvent, SignalEvent
 from goat.execution import ExecutionHandler
 from goat.strategy import Strategy
 
@@ -26,19 +26,17 @@ class Portfolio:
     3. Receives SignalEvents from Strategies
     4. Generates OrderEvents for ExecutionHandler
     5. Processes FillEvents to update positions
+
+    Attributes:
+        cash: Current cash balance.
+        total_value: Total portfolio value (cash + positions).
+        positions: Map of symbol to quantity held.
+        data_handler: Data provider for market data.
+        execution_handler: Handler for order execution.
+        active_strategies: List of running strategies.
+        event_queue: Queue of events to process.
+        default_order_quantity: Default quantity for orders.
     """
-
-    # Class attributes with types
-    cash: float
-    total_value: float
-    positions: dict[Symbol, int]
-    data_handler: CandleDataHandler
-    execution_handler: ExecutionHandler
-    active_strategies: list[Strategy]
-    event_queue: EventQueue
-
-    # Configuration
-    default_order_quantity: int = 10
 
     def __init__(
         self,
@@ -57,21 +55,25 @@ class Portfolio:
         """
         self.cash = cash
         self.total_value = cash
-        self.positions = {}
+        self.positions: dict[Symbol, int] = {}
+        self._latest_prices: dict[Symbol, float] = {}  # Track latest price per symbol
         self.data_handler = data_handler
         self.execution_handler = execution_handler
         self.active_strategies = []
         self.event_queue = deque()
         self.default_order_quantity = default_order_quantity
+        self._running = False
 
     def start(self) -> None:
         """Start the portfolio and run the main loop."""
+        self._running = True
         self._run_event_loop()
 
     def stop(self) -> None:
         """Stop all active strategies."""
         for strategy in self.active_strategies:
             strategy.stop()
+        self._running = False
 
     def add_strategy(self, strategy: Strategy) -> None:
         """Add and start a strategy.
@@ -118,7 +120,7 @@ class Portfolio:
 
     def _run_event_loop(self) -> None:
         """Main event loop: fetch data and process events."""
-        while True:
+        while self._running:
             # Get next candle from data handler
             candle = self.data_handler.next_candle()
             if candle is None:
@@ -154,7 +156,7 @@ class Portfolio:
             candle: Current candle data.
         """
         for strategy in self.active_strategies:
-            action = strategy.calculate_signal(candle.close)
+            action = strategy.calculate_signal(candle)
             if action is not None:
                 signal = SignalEvent(
                     strategy_id=strategy.id,
@@ -224,8 +226,9 @@ class Portfolio:
             self.positions[symbol] = self.positions.get(symbol, 0) - event.quantity
             self.cash += event.fill_cost - event.commission
 
-        # Update total value (simplified: assumes latest fill price)
-        self._update_total_value(event.price)
+        # Update latest price for this symbol and recalculate total value
+        self._latest_prices[symbol] = event.price
+        self._update_total_value()
 
     def _on_strategy_signal(self, signal: object) -> None:
         """Callback for strategies to emit signals directly.
@@ -236,13 +239,9 @@ class Portfolio:
         if isinstance(signal, SignalEvent):
             self.event_queue.append(signal)
 
-    def _update_total_value(self, current_price: float) -> None:
-        """Update total portfolio value.
-
-        Args:
-            current_price: Current market price for valuation.
-        """
-        position_value = sum(qty * current_price for qty in self.positions.values())
+    def _update_total_value(self) -> None:
+        """Update total portfolio value using latest known prices per symbol."""
+        position_value = sum(qty * self._latest_prices.get(symbol, 0.0) for symbol, qty in self.positions.items())
         self.total_value = self.cash + position_value
 
     # =========================================================================
