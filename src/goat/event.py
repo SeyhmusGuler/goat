@@ -69,6 +69,8 @@ class FillEvent(Event):
     quantity: int = Field(..., gt=0)
     price: float
     datetime: AwareDatetime
+    fill_cost: float = Field(default=0.0)
+    commission: float = Field(default=0.0)
 
 
 if __name__ == "__main__":
