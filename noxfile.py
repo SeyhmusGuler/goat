@@ -12,7 +12,13 @@ def tests(session: nox.Session) -> None:
         "--no-default-groups",
         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
-    session.run("pytest", "-q")
+    session.run(
+        "pytest",
+        "-q",
+        "--cov=goat",
+        "--cov-report=term-missing",
+        *session.posargs,
+    )
 
 
 @nox.session
