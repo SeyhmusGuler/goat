@@ -1,6 +1,26 @@
 # goat
 guler's op algo trading.
 
+## Architecture
+
+GOAT is an event-driven algorithmic trading framework with the following components:
+
+```
+DataHandler → MarketEvent → Strategy → SignalEvent → Portfolio → OrderEvent → ExecutionHandler → FillEvent
+```
+
+For detailed architecture documentation with diagrams, see **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+
+### Core Components
+
+| Component | Description |
+|-----------|-------------|
+| **DataHandler** | Provides market data (historical or streaming) |
+| **Strategy** | Generates trading signals from market data |
+| **Portfolio** | Manages positions and converts signals to orders |
+| **ExecutionHandler** | Executes orders with internal matching and external routing |
+| **Events** | Typed messages (Market, Signal, Order, Fill) connecting components |
+
 ## Development
 
 ### Running Tests

@@ -1,45 +1,106 @@
-from goat.data_handler import CandleDataHandler
-from goat.enums import Symbol
+"""Portfolio module for position management and event orchestration.
+
+The Portfolio is the central coordinator that:
+- Manages positions and cash
+- Maintains an event queue
+- Routes events to appropriate handlers
+- Converts signals to orders
+"""
+
+from collections import deque
+from datetime import datetime, timezone
+
+from goat.data_handler import Candle, CandleDataHandler
+from goat.enums import Action, Direction, OrderType, Symbol
+from goat.event import EventQueue, FillEvent, MarketEvent, SignalEvent
 from goat.execution import ExecutionHandler
 from goat.strategy import Strategy
 
 
 class Portfolio:
-    cash: float = 0.0
-    total_value: float = 0.0
-    positions: dict[Symbol, int] | None = None
+    """Manages positions, strategies, and event flow.
+
+    The Portfolio coordinates the event-driven trading loop:
+    1. Receives MarketEvents from DataHandler
+    2. Feeds candles to Strategies
+    3. Receives SignalEvents from Strategies
+    4. Generates OrderEvents for ExecutionHandler
+    5. Processes FillEvents to update positions
+    """
+
+    # Class attributes with types
+    cash: float
+    total_value: float
+    positions: dict[Symbol, int]
     data_handler: CandleDataHandler
     execution_handler: ExecutionHandler
-    active_strategies: list[Strategy] | None = None
+    active_strategies: list[Strategy]
+    event_queue: EventQueue
 
-    def __init__(self, cash: float, data_handler: CandleDataHandler, execution_handler: ExecutionHandler) -> None:
+    # Configuration
+    default_order_quantity: int = 10
+
+    def __init__(
+        self,
+        cash: float,
+        data_handler: CandleDataHandler,
+        execution_handler: ExecutionHandler,
+        default_order_quantity: int = 10,
+    ) -> None:
+        """Initialize portfolio.
+
+        Args:
+            cash: Starting cash balance.
+            data_handler: Data provider for market data.
+            execution_handler: Handler for order execution.
+            default_order_quantity: Default quantity for orders.
+        """
         self.cash = cash
         self.total_value = cash
         self.positions = {}
         self.data_handler = data_handler
         self.execution_handler = execution_handler
+        self.active_strategies = []
+        self.event_queue = deque()
+        self.default_order_quantity = default_order_quantity
 
     def start(self) -> None:
-        pass
+        """Start the portfolio and run the main loop."""
+        self._run_event_loop()
 
     def stop(self) -> None:
-        pass
+        """Stop all active strategies."""
+        for strategy in self.active_strategies:
+            strategy.stop()
 
     def add_strategy(self, strategy: Strategy) -> None:
-        if self.active_strategies is None:
-            self.active_strategies = []
+        """Add and start a strategy.
+
+        Args:
+            strategy: Strategy to add.
+        """
+        # Wire the strategy's signal callback to our handler
+        strategy.on_signal = self._on_strategy_signal
         strategy.run()
         self.active_strategies.append(strategy)
 
     def remove_strategy(self, strategy: Strategy) -> None:
-        if self.active_strategies is None:
+        """Remove and stop a strategy.
+
+        Args:
+            strategy: Strategy to remove.
+        """
+        if strategy not in self.active_strategies:
             return
         strategy.stop()
         self.active_strategies.remove(strategy)
 
     def remove_strategies_by_id(self, strategy_id: str) -> None:
-        if self.active_strategies is None:
-            return
+        """Remove all strategies with the given ID.
+
+        Args:
+            strategy_id: ID of strategies to remove.
+        """
         strategies_to_keep: list[Strategy] = []
         strategies_to_stop: list[Strategy] = []
         for strategy in self.active_strategies:
@@ -50,3 +111,168 @@ class Portfolio:
         for strategy in strategies_to_stop:
             strategy.stop()
         self.active_strategies = strategies_to_keep
+
+    # =========================================================================
+    # Event Processing
+    # =========================================================================
+
+    def _run_event_loop(self) -> None:
+        """Main event loop: fetch data and process events."""
+        while True:
+            # Get next candle from data handler
+            candle = self.data_handler.next_candle()
+            if candle is None:
+                break
+
+            # Emit market event
+            self.event_queue.append(MarketEvent())
+
+            # Process all events
+            self._process_events(candle)
+
+    def _process_events(self, current_candle: Candle) -> None:
+        """Process all events in the queue.
+
+        Args:
+            current_candle: Current candle for price reference.
+        """
+        while self.event_queue:
+            event = self.event_queue.popleft()
+
+            if isinstance(event, MarketEvent):
+                self._on_market(event, current_candle)
+            elif isinstance(event, SignalEvent):
+                self._on_signal(event, current_candle)
+            elif isinstance(event, FillEvent):
+                self._on_fill(event)
+
+    def _on_market(self, event: MarketEvent, candle: Candle) -> None:
+        """Handle market event by feeding candle to strategies.
+
+        Args:
+            event: The market event.
+            candle: Current candle data.
+        """
+        for strategy in self.active_strategies:
+            action = strategy.calculate_signal(candle.close)
+            if action is not None:
+                signal = SignalEvent(
+                    strategy_id=strategy.id,
+                    symbol=strategy.symbol,
+                    action=action,
+                    datetime=datetime.now(tz=timezone.utc),
+                )
+                self.event_queue.append(signal)
+
+    def _on_signal(self, event: SignalEvent, candle: Candle) -> None:
+        """Handle signal event by generating orders.
+
+        Args:
+            event: The signal event.
+            candle: Current candle for price reference.
+        """
+        # Determine order direction
+        direction = Direction.BUY if event.action == Action.BUY else Direction.SELL
+
+        # Check if we should trade (simple logic: don't short, don't over-buy)
+        current_position = self.positions.get(event.symbol, 0)
+        if direction == Direction.SELL and current_position <= 0:
+            return  # Skip: no position to sell
+
+        # Submit order through execution handler
+        order, fills = self.execution_handler.submit_order(
+            symbol=event.symbol,
+            direction=direction,
+            order_type=OrderType.MARKET,
+            quantity=min(self.default_order_quantity, current_position)
+            if direction == Direction.SELL
+            else self.default_order_quantity,
+            price=candle.close,
+            strategy_id=event.strategy_id,
+        )
+
+        # Queue fill events for position updates
+        for fill in fills:
+            fill_event = FillEvent(
+                fill_type="FULL" if order.is_complete else "PARTIAL",
+                order_id=fill.order_id,
+                quantity=fill.quantity,
+                price=fill.price,
+                datetime=fill.timestamp,
+                fill_cost=fill.quantity * fill.price,
+                commission=fill.commission,
+            )
+            self.event_queue.append(fill_event)
+
+    def _on_fill(self, event: FillEvent) -> None:
+        """Handle fill event by updating positions and cash.
+
+        Args:
+            event: The fill event.
+        """
+        # We need to look up the order to determine direction
+        order = self.execution_handler.get_order(event.order_id)
+        if order is None:
+            return
+
+        symbol = order.symbol
+
+        if order.direction == Direction.BUY:
+            self.positions[symbol] = self.positions.get(symbol, 0) + event.quantity
+            self.cash -= event.fill_cost + event.commission
+        else:  # SELL
+            self.positions[symbol] = self.positions.get(symbol, 0) - event.quantity
+            self.cash += event.fill_cost - event.commission
+
+        # Update total value (simplified: assumes latest fill price)
+        self._update_total_value(event.price)
+
+    def _on_strategy_signal(self, signal: object) -> None:
+        """Callback for strategies to emit signals directly.
+
+        Args:
+            signal: SignalEvent from strategy.
+        """
+        if isinstance(signal, SignalEvent):
+            self.event_queue.append(signal)
+
+    def _update_total_value(self, current_price: float) -> None:
+        """Update total portfolio value.
+
+        Args:
+            current_price: Current market price for valuation.
+        """
+        position_value = sum(qty * current_price for qty in self.positions.values())
+        self.total_value = self.cash + position_value
+
+    # =========================================================================
+    # Query Methods
+    # =========================================================================
+
+    def get_position(self, symbol: Symbol) -> int:
+        """Get current position for a symbol.
+
+        Args:
+            symbol: The symbol to query.
+
+        Returns:
+            Current position quantity (0 if no position).
+        """
+        return self.positions.get(symbol, 0)
+
+    def get_unrealized_pnl(self, symbol: Symbol, current_price: float) -> float:
+        """Calculate unrealized P&L for a position.
+
+        Args:
+            symbol: The symbol to query.
+            current_price: Current market price.
+
+        Returns:
+            Unrealized profit/loss (simplified calculation).
+        """
+        position = self.positions.get(symbol, 0)
+        if position == 0:
+            return 0.0
+        # Note: This requires tracking entry price, which we don't currently do
+        # For now, return 0 as placeholder
+        return 0.0
