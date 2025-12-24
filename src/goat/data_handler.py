@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import numpy as np
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from pydantic_settings import SettingsConfigDict
 
 import polars as pl
@@ -9,14 +9,14 @@ from typing import Protocol, Iterator
 
 
 class Candle(BaseModel):
-    start_timestamp: int
-    time_period: int
+    start_timestamp: int = Field(default=0, ge=0)
+    time_period: int = Field(default=0, ge=0)
     open: float = np.nan
     high: float = -np.inf
     low: float = np.inf
     close: float = np.nan
-    volume: int = 0
-    tick_count: int = 0
+    volume: int = Field(default=0, ge=0)
+    tick_count: int = Field(default=0, ge=0)
 
     def __str__(self) -> str:
         return "Tick %2d - %s | O:%.2f H:%.2f L:%.2f C:%.2f V:%-8d" % (
