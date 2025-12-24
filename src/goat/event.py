@@ -1,12 +1,12 @@
-from __future__ import annotations
+from __future__ import annotations  # will be removed in the future
+
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
+from pydantic import AwareDatetime, BaseModel, Field
+
+from goat.enums import Action, Direction, OrderType, Symbol
 from goat.strategy import StrategyID
-from pydantic import BaseModel, Field, AwareDatetime
-from typing import Literal
-from goat.enums import Symbol, Action, Direction, OrderType
-
 
 if TYPE_CHECKING:
     from goat.settings import Settings  # Only for type checker, not imported at runtime
@@ -69,6 +69,8 @@ class FillEvent(Event):
     quantity: int = Field(..., gt=0)
     price: float
     datetime: AwareDatetime
+    fill_cost: float = Field(default=0.0)
+    commission: float = Field(default=0.0)
 
 
 if __name__ == "__main__":
