@@ -59,12 +59,6 @@ line-ending = "auto"
 [tool.ty.environment]
 python = ".venv"
 
-[tool.pytest.ini_options]
-markers = [
-    "slow: marks tests as slow (deselect with 'pytest -m \"not slow\"')",
-    "integration: marks tests as integration tests (deselect with 'pytest -m \"not integration\"')",
-]
-
 [tool.coverage.run]
 source = ["src/goat"]
 branch = true
