@@ -257,9 +257,9 @@ classDiagram
         +add_strategy(strategy) None
         +remove_strategy(strategy) None
         +process_events() None
-        +on_market(event, candle) None
-        +on_signal(event) None
-        +on_fill(event) None
+        -_on_market(event, candle) None
+        -_on_signal(event) None
+        -_on_fill(event) None
     }
 ```
 
