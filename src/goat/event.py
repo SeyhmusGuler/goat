@@ -1,12 +1,12 @@
 from __future__ import annotations
+
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
+from pydantic import AwareDatetime, BaseModel, Field
+
+from goat.enums import Action, Direction, OrderType, Symbol
 from goat.strategy import StrategyID
-from pydantic import BaseModel, Field, AwareDatetime
-from typing import Literal
-from goat.enums import Symbol, Action, Direction, OrderType
-
 
 if TYPE_CHECKING:
     from goat.settings import Settings  # Only for type checker, not imported at runtime

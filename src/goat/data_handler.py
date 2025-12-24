@@ -1,11 +1,12 @@
+from __future__ import annotations
+
 from datetime import datetime
+from typing import Iterator, Protocol
 
 import numpy as np
+import polars as pl
 from pydantic import BaseModel, Field
 from pydantic_settings import SettingsConfigDict
-
-import polars as pl
-from typing import Protocol, Iterator
 
 
 class Candle(BaseModel):

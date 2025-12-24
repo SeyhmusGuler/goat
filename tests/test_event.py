@@ -1,10 +1,11 @@
-import pytest
-
-from pydantic import ValidationError
-from goat.event import OrderEvent, FillEvent
-from goat.enums import Symbol, Direction, OrderType
 import uuid
 from datetime import datetime, timezone
+
+import pytest
+from pydantic import ValidationError
+
+from goat.enums import Direction, OrderType, Symbol
+from goat.event import FillEvent, OrderEvent
 
 
 class TestOrderEvent:

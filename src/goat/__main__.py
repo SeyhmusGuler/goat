@@ -1,5 +1,9 @@
-import structlog
+from __future__ import annotations
+
 import time
+
+import structlog
+
 from goat.settings import load_settings
 
 
