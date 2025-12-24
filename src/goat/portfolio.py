@@ -7,7 +7,7 @@ from goat.strategy import Strategy
 class Portfolio:
     cash: float = 0.0
     total_value: float = 0.0
-    positions: dict[Symbol, int] = {}
+    positions: dict[Symbol, int] | None = None
     data_handler: CandleDataHandler
     execution_handler: ExecutionHandler
     active_strategies: list[Strategy] | None = None
@@ -15,6 +15,7 @@ class Portfolio:
     def __init__(self, cash: float, data_handler: CandleDataHandler, execution_handler: ExecutionHandler) -> None:
         self.cash = cash
         self.total_value = cash
+        self.positions = {}
         self.data_handler = data_handler
         self.execution_handler = execution_handler
 
