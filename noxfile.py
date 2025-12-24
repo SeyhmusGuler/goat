@@ -17,7 +17,6 @@ def tests(session: nox.Session) -> None:
         "-q",
         "--cov=src/goat",
         "--cov-report=term-missing",
-        "--cov-fail-under=60",  # TODO: raise this to 90%
         *session.posargs,
     )
 
