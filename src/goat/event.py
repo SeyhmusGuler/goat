@@ -1,3 +1,5 @@
+from __future__ import annotations  # will be removed in the future
+
 import uuid
 from typing import TYPE_CHECKING, Literal
 
