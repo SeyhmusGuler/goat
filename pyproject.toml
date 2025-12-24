@@ -60,7 +60,7 @@ line-ending = "auto"
 python = ".venv"
 
 [tool.coverage.run]
-source = ["src/goat"]
+source = ["goat"]
 branch = true
 
 [tool.coverage.report]

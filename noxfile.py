@@ -15,7 +15,7 @@ def tests(session: nox.Session) -> None:
     session.run(
         "pytest",
         "-q",
-        "--cov=src/goat",
+        "--cov=goat",
         "--cov-report=term-missing",
         *session.posargs,
     )
