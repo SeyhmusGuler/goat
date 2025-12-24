@@ -1,7 +1,8 @@
 from __future__ import annotations  # will be removed in the future
 
 import uuid
-from typing import TYPE_CHECKING, Literal
+from collections import deque
+from typing import TYPE_CHECKING, Literal, TypeAlias
 
 from pydantic import AwareDatetime, BaseModel, Field
 
@@ -71,6 +72,14 @@ class FillEvent(Event):
     datetime: AwareDatetime
     fill_cost: float = Field(default=0.0)
     commission: float = Field(default=0.0)
+
+
+# Type aliases for event processing
+AnyEvent: TypeAlias = MarketEvent | SignalEvent | OrderEvent | FillEvent
+"""Union type of all concrete event types."""
+
+EventQueue: TypeAlias = deque[AnyEvent]
+"""Type alias for a queue of events."""
 
 
 if __name__ == "__main__":
