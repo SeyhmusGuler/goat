@@ -39,7 +39,13 @@ class Portfolio:
     def remove_strategies_by_id(self, strategy_id: str) -> None:
         if self.active_strategies is None:
             return
+        strategies_to_keep: list[Strategy] = []
+        strategies_to_stop: list[Strategy] = []
         for strategy in self.active_strategies:
             if strategy.id == strategy_id:
-                strategy.stop()
-        self.active_strategies = [strategy for strategy in self.active_strategies if strategy.id != strategy_id]
+                strategies_to_stop.append(strategy)
+            else:
+                strategies_to_keep.append(strategy)
+        for strategy in strategies_to_stop:
+            strategy.stop()
+        self.active_strategies = strategies_to_keep
