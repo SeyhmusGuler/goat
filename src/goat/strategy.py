@@ -12,10 +12,10 @@ class Strategy(Protocol):
     id: StrategyID
 
     def run(self) -> None:
-        raise NotImplementedError
+        ...
 
     def stop(self) -> None:
-        raise NotImplementedError
+        ...
 
 
 class MovingAverageCrossStrategy:
