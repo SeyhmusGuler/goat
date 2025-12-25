@@ -67,12 +67,12 @@ class TimeWindowCandle(BaseCandle):
         if self.start_timestamp == candle.start_timestamp:
             if np.isnan(self.open):
                 self.open = candle.open
-            elif not np.isnan(candle.open) and self.open != candle.open:
+            elif not np.isnan(candle.open) and not np.isclose(self.open, candle.open):
                 raise ValueError("Candle open price is different")
         if self.end_timestamp == candle.end_timestamp:
             if np.isnan(self.close):
                 self.close = candle.close
-            elif not np.isnan(candle.close) and self.close != candle.close:
+            elif not np.isnan(candle.close) and not np.isclose(self.close, candle.close):
                 raise ValueError("Candle close price is different")
         self.high = max(self.high, candle.high)
         self.low = min(self.low, candle.low)
