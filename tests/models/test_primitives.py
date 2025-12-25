@@ -180,7 +180,7 @@ class TestTimeWindowCandle:
 
     def test_update_with_invalid_type_raises(self):
         candle = TimeCandle(start_timestamp=0, end_timestamp=100)
-        with pytest.raises(TypeError, match="data must be a Tick or a Candle"):
+        with pytest.raises(TypeError, match="Update data must be a Tick or a Candle"):
             candle.update("invalid")  # type: ignore[no-matching-overload]
 
 
