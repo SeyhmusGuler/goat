@@ -18,22 +18,25 @@ class Tick(BaseModel):
     volume: Volume = Field(description="Volume")
 
 
-class BaseCandle(BaseModel):
+class Candle(BaseModel):
     open: float = Field(default=np.nan, description="Open price in USD")
     high: float = Field(default=-np.inf, description="High price in USD")
     low: float = Field(default=np.inf, description="Low price in USD")
     close: float = Field(default=np.nan, description="Close price in USD")
     volume: Volume = Field(default=0, description="Volume")
 
+    def __str__(self):
+        return f"Candle(open={self.open}, high={self.high}, low={self.low}, close={self.close}, volume={self.volume})"
 
-class TimeWindowCandle(BaseCandle):
+
+class TimeCandle(Candle):
     start_timestamp: Timestamp
     end_timestamp: Timestamp
 
     @model_validator(mode="after")
     def validate_timestamps(self):
         if self.start_timestamp > self.end_timestamp:
-            raise ValueError("start_timestamp must be less than or equal to end_timestamp")
+            raise ValueError("Candle start_timestamp must be less than or equal to end_timestamp")
         return self
 
     @overload
@@ -45,66 +48,71 @@ class TimeWindowCandle(BaseCandle):
     def update(self, data: Tick | Self) -> None:
         if isinstance(data, Tick):
             self._update_from_tick(data)
-        elif isinstance(data, TimeWindowCandle):
+        elif isinstance(data, TimeCandle):
             self._update_from_candle(data)
         else:
-            raise TypeError("data must be a Tick or a Candle")
+            raise TypeError("Update data must be a Tick or a Candle")
 
     def _update_from_tick(self, tick: Tick) -> None:
         if not (self.start_timestamp <= tick.timestamp <= self.end_timestamp):
             raise ValueError("Tick timestamp is outside the candle time window")
-
         if np.isnan(self.open):
             self.open = tick.price
+        self.close = tick.price
         self.high = max(self.high, tick.price)
         self.low = min(self.low, tick.price)
-        self.close = tick.price
         self.volume += tick.volume
 
     def _update_from_candle(self, candle: Self) -> None:
         if self.start_timestamp > candle.start_timestamp or self.end_timestamp < candle.end_timestamp:
             raise ValueError("New candle time window is outside the candle time window")
-        if self.start_timestamp == candle.start_timestamp:
-            if np.isnan(self.open):
-                self.open = candle.open
-            elif not np.isnan(candle.open) and not np.isclose(self.open, candle.open):
-                raise ValueError(f"Candle open price is different: expected {self.open}, got {candle.open}")
-        if self.end_timestamp == candle.end_timestamp:
-            if np.isnan(self.close):
-                self.close = candle.close
-            elif not np.isnan(candle.close) and not np.isclose(self.close, candle.close):
-                raise ValueError(f"Candle close price is different: expected {self.close}, got {candle.close}")
+        if np.isnan(self.open):
+            self.open = candle.open
+        if np.isnan(self.close):
+            self.close = candle.close
+        if self.start_timestamp == candle.start_timestamp and not np.isclose(self.open, candle.open):
+            raise ValueError(f"Candle open price is different: expected {self.open}, got {candle.open}")
+        if self.end_timestamp == candle.end_timestamp and not np.isclose(self.close, candle.close):
+            raise ValueError(f"Candle close price is different: expected {self.close}, got {candle.close}")
         self.high = max(self.high, candle.high)
         self.low = min(self.low, candle.low)
         self.volume += candle.volume
 
     def __str__(self):
-        return f"Candle(start={self.start_timestamp}, end={self.end_timestamp}, open={self.open}, high={self.high}, low={self.low}, close={self.close}, volume={self.volume})"
+        return f"TimeCandle(start={self.start_timestamp}, end={self.end_timestamp}, {super().__str__()})"
 
 
-class FixedTickCountCandle(BaseCandle):
+class TickCandle(Candle):
     start_timestamp: Timestamp
-    max_tick_count: int = Field(description="Maximum number of ticks", gt=0)
-    tick_count: int = Field(description="Number of ticks", default=0)
+    max_ticks: int = Field(description="Maximum number of ticks", gt=0)
+    num_ticks: int = Field(description="Number of ticks", default=0)
+    last_timestamp: Timestamp | None = Field(description="Timestamp of the last (youngest) tick", default=None)
 
-    # Add if needed
-    # ticks: list[Tick] = Field(description="List of ticks")
+    @model_validator(mode="after")
+    def validate_tick_count(self):
+        if self.num_ticks > self.max_ticks:
+            raise ValueError("Tick count is greater than maximum tick count")
+        return self
 
-    def update(self, tick: Tick):
-        if self.tick_count >= self.max_tick_count:
-            raise ValueError("Candle is full")
-
+    def update(self, tick: Tick) -> None:
         if self.start_timestamp > tick.timestamp:
             raise ValueError("Tick timestamp is before the candle start timestamp")
+
+        if self.num_ticks >= self.max_ticks:
+            raise ValueError("TickCandle is full")
 
         if np.isnan(self.open):
             self.open = tick.price
         self.high = max(self.high, tick.price)
         self.low = min(self.low, tick.price)
-        self.close = tick.price
+        if self.last_timestamp is None or self.last_timestamp <= tick.timestamp:
+            self.close = tick.price
+            self.last_timestamp = tick.timestamp
         self.volume += tick.volume
-        self.tick_count += 1
-        # self.ticks.append(tick)
+        self.num_ticks += 1
 
     def __str__(self):
-        return f"Candle(start={self.start_timestamp}, max_tick_count={self.max_tick_count}, tick_count={self.tick_count}, open={self.open}, high={self.high}, low={self.low}, close={self.close}, volume={self.volume})"
+        return (
+            f"TickCandle(start={self.start_timestamp}, max_ticks={self.max_ticks}, "
+            f"num_ticks={self.num_ticks}, {super().__str__()})"
+        )
