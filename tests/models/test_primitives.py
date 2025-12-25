@@ -10,7 +10,7 @@ class TestTimestamp:
         assert 0 <= MIN_TIMESTAMP_NS <= MAX_TIMESTAMP_NS < 2**64
 
 
-class TestTimeWindowCandle:
+class TestTimeCandle:
     # Timestamp validation
     def test_valid_timestamp_order(self):
         candle = TimeCandle(start_timestamp=100, end_timestamp=200)
@@ -22,7 +22,7 @@ class TestTimeWindowCandle:
         assert candle.start_timestamp == candle.end_timestamp
 
     def test_invalid_timestamp_order_raises(self):
-        with pytest.raises(ValidationError, match="start_timestamp must be less than or equal to end_timestamp"):
+        with pytest.raises(ValidationError, match="Candle start_timestamp must be less than or equal to end_timestamp"):
             TimeCandle(start_timestamp=200, end_timestamp=100)
 
     # Update from Tick
