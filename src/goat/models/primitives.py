@@ -113,11 +113,3 @@ class FixedTickCountCandle(BaseCandle):
     def __str__(self):
         return f"Candle(start={self.start_timestamp}, max_tick_count={self.max_tick_count}, tick_count={self.tick_count}, open={self.open}, high={self.high}, low={self.low}, close={self.close}, volume={self.volume})"
 
-
-if __name__ == "__main__":
-    ts = 1
-    print(ts)
-    candle = TimeWindowCandle(start_timestamp=ts, end_timestamp=ts)
-    print(candle)
-    candle.update(Tick(timestamp=ts, price=1, volume=1))
-    print(candle)
