@@ -10,7 +10,7 @@ class TestTimestamp:
         assert 0 <= MIN_TIMESTAMP_NS <= MAX_TIMESTAMP_NS < 2**64
 
 
-class TestTimeWindowCandle:
+class TestTimeCandle:
     # Timestamp validation
     def test_valid_timestamp_order(self):
         candle = TimeCandle(start_timestamp=100, end_timestamp=200)
