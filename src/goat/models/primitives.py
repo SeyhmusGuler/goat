@@ -68,16 +68,12 @@ class TimeWindowCandle(BaseCandle):
             if np.isnan(self.open):
                 self.open = candle.open
             elif not np.isnan(candle.open) and not np.isclose(self.open, candle.open):
-                raise ValueError(
-                    f"Candle open price is different: expected {self.open}, got {candle.open}"
-                )
+                raise ValueError(f"Candle open price is different: expected {self.open}, got {candle.open}")
         if self.end_timestamp == candle.end_timestamp:
             if np.isnan(self.close):
                 self.close = candle.close
             elif not np.isnan(candle.close) and not np.isclose(self.close, candle.close):
-                raise ValueError(
-                    f"Candle close price is different: expected {self.close}, got {candle.close}"
-                )
+                raise ValueError(f"Candle close price is different: expected {self.close}, got {candle.close}")
         self.high = max(self.high, candle.high)
         self.low = min(self.low, candle.low)
         self.volume += candle.volume
@@ -112,4 +108,3 @@ class FixedTickCountCandle(BaseCandle):
 
     def __str__(self):
         return f"Candle(start={self.start_timestamp}, max_tick_count={self.max_tick_count}, tick_count={self.tick_count}, open={self.open}, high={self.high}, low={self.low}, close={self.close}, volume={self.volume})"
-
