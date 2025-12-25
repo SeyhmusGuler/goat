@@ -88,7 +88,7 @@ class TimeWindowCandle(BaseCandle):
 
 class FixedTickCountCandle(BaseCandle):
     start_timestamp: Timestamp
-    max_tick_count: int = Field(description="Maximum number of ticks", default=0)
+    max_tick_count: int = Field(description="Maximum number of ticks", gt=0)
     tick_count: int = Field(description="Number of ticks", default=0)
 
     # Add if needed
