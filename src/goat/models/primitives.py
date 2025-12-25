@@ -74,7 +74,7 @@ class TimeWindowCandle(BaseCandle):
         if self.end_timestamp == candle.end_timestamp:
             if np.isnan(self.close):
                 self.close = candle.close
-            elif not np.isnan(candle.close) and self.close != candle.close:
+            elif not np.isnan(candle.close) and not np.isclose(self.close, candle.close):
                 raise ValueError(
                     f"Candle close price is different: expected {self.close}, got {candle.close}"
                 )
