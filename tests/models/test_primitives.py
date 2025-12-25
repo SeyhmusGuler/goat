@@ -306,7 +306,7 @@ class TestTickCandle:
         assert "TickCandle" in s
         assert "start=100" in s
         assert "max_ticks=5" in s
-        assert "nof_ticks=2" in s
+        assert "num_ticks=2" in s
 
     def test_single_tick_candle(self):
         candle = TickCandle(start_timestamp=0, max_ticks=1)
