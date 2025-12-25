@@ -9,7 +9,7 @@ MAX_TIMESTAMP_NS = 2**64 - 1
 Timestamp = Annotated[int, Field(ge=MIN_TIMESTAMP_NS, le=MAX_TIMESTAMP_NS)]
 
 # Volume (always non-negative)
-Volume = Annotated[int, Field(gt=0)]
+Volume = Annotated[int, Field(ge=0)]
 
 
 class Tick(BaseModel):
