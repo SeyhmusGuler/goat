@@ -85,12 +85,12 @@ class TimeCandle(Candle):
 class TickCandle(Candle):
     start_timestamp: Timestamp
     max_ticks: int = Field(description="Maximum number of ticks", gt=0)
-    nof_ticks: int = Field(description="Number of ticks", default=0)
+    num_ticks: int = Field(description="Number of ticks", default=0)
     last_timestamp: Timestamp | None = Field(description="Timestamp of the last (youngest) tick", default=None)
 
     @model_validator(mode="after")
     def validate_tick_count(self):
-        if self.nof_ticks > self.max_ticks:
+        if self.num_ticks > self.max_ticks:
             raise ValueError("Tick count is greater than maximum tick count")
         return self
 
@@ -98,7 +98,7 @@ class TickCandle(Candle):
         if self.start_timestamp > tick.timestamp:
             raise ValueError("Tick timestamp is before the candle start timestamp")
 
-        if self.nof_ticks >= self.max_ticks:
+        if self.num_ticks >= self.max_ticks:
             raise ValueError("TickCandle is full")
 
         if np.isnan(self.open):
@@ -109,10 +109,10 @@ class TickCandle(Candle):
             self.close = tick.price
             self.last_timestamp = tick.timestamp
         self.volume += tick.volume
-        self.nof_ticks += 1
+        self.num_ticks += 1
 
     def __str__(self):
         return (
             f"TickCandle(start={self.start_timestamp}, max_ticks={self.max_ticks}, "
-            f"nof_ticks={self.nof_ticks}, {super().__str__()})"
+            f"num_ticks={self.num_ticks}, {super().__str__()})"
         )

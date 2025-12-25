@@ -189,7 +189,7 @@ class TestTickCandle:
         candle = TickCandle(start_timestamp=100, max_ticks=10)
         assert candle.start_timestamp == 100
         assert candle.max_ticks == 10
-        assert candle.nof_ticks == 0
+        assert candle.num_ticks == 0
 
     def test_max_ticks_must_be_positive(self):
         with pytest.raises(ValidationError, match="greater than 0"):
@@ -197,13 +197,13 @@ class TestTickCandle:
         with pytest.raises(ValidationError, match="greater than 0"):
             TickCandle(start_timestamp=0, max_ticks=-1)
 
-    def test_nof_ticks_cannot_exceed_max_ticks(self):
+    def test_num_ticks_cannot_exceed_max_ticks(self):
         with pytest.raises(ValidationError, match="Tick count is greater than maximum tick count"):
-            TickCandle(start_timestamp=0, max_ticks=5, nof_ticks=10)
+            TickCandle(start_timestamp=0, max_ticks=5, num_ticks=10)
 
-    def test_nof_ticks_equal_to_max_ticks_valid(self):
-        candle = TickCandle(start_timestamp=0, max_ticks=5, nof_ticks=5)
-        assert candle.nof_ticks == candle.max_ticks
+    def test_num_ticks_equal_to_max_ticks_valid(self):
+        candle = TickCandle(start_timestamp=0, max_ticks=5, num_ticks=5)
+        assert candle.num_ticks == candle.max_ticks
 
     def test_update_sets_open_when_nan(self):
         candle = TickCandle(start_timestamp=0, max_ticks=10)
@@ -214,7 +214,7 @@ class TestTickCandle:
         assert candle.high == 10.0
         assert candle.low == 10.0
         assert candle.volume == 5
-        assert candle.nof_ticks == 1
+        assert candle.num_ticks == 1
 
     def test_update_preserves_open(self):
         candle = TickCandle(start_timestamp=0, max_ticks=10)
@@ -222,7 +222,7 @@ class TestTickCandle:
         candle.update(Tick(timestamp=0, price=20.0, volume=2))
         assert candle.open == 10.0
         assert candle.close == 20.0
-        assert candle.nof_ticks == 2
+        assert candle.num_ticks == 2
 
     def test_update_tracks_high(self):
         candle = TickCandle(start_timestamp=0, max_ticks=10)
@@ -258,11 +258,11 @@ class TestTickCandle:
 
     def test_update_increments_tick_count(self):
         candle = TickCandle(start_timestamp=0, max_ticks=10)
-        assert candle.nof_ticks == 0
+        assert candle.num_ticks == 0
         candle.update(Tick(timestamp=10, price=10.0, volume=1))
-        assert candle.nof_ticks == 1
+        assert candle.num_ticks == 1
         candle.update(Tick(timestamp=20, price=20.0, volume=1))
-        assert candle.nof_ticks == 2
+        assert candle.num_ticks == 2
 
     def test_update_raises_when_candle_full(self):
         candle = TickCandle(start_timestamp=0, max_ticks=2)
@@ -276,7 +276,7 @@ class TestTickCandle:
         candle.update(Tick(timestamp=10, price=10.0, volume=1))
         candle.update(Tick(timestamp=20, price=20.0, volume=1))
         candle.update(Tick(timestamp=30, price=30.0, volume=1))
-        assert candle.nof_ticks == 3
+        assert candle.num_ticks == 3
         with pytest.raises(ValueError, match="TickCandle is full"):
             candle.update(Tick(timestamp=40, price=40.0, volume=1))
 
@@ -288,15 +288,15 @@ class TestTickCandle:
     def test_update_allows_tick_at_start_timestamp(self):
         candle = TickCandle(start_timestamp=100, max_ticks=10)
         candle.update(Tick(timestamp=100, price=10.0, volume=1))
-        assert candle.nof_ticks == 1
+        assert candle.num_ticks == 1
 
     def test_update_allows_tick_after_start_timestamp(self):
         candle = TickCandle(start_timestamp=100, max_ticks=10)
         candle.update(Tick(timestamp=200, price=10.0, volume=1))
-        assert candle.nof_ticks == 1
+        assert candle.num_ticks == 1
 
     def test_str_representation(self):
-        candle = TickCandle(start_timestamp=100, max_ticks=5, nof_ticks=2)
+        candle = TickCandle(start_timestamp=100, max_ticks=5, num_ticks=2)
         candle.open = 10.0
         candle.high = 20.0
         candle.low = 5.0
@@ -316,7 +316,7 @@ class TestTickCandle:
         assert candle.low == 50.0
         assert candle.close == 50.0
         assert candle.volume == 10
-        assert candle.nof_ticks == 1
+        assert candle.num_ticks == 1
         with pytest.raises(ValueError, match="TickCandle is full"):
             candle.update(Tick(timestamp=20, price=60.0, volume=5))
 
@@ -325,4 +325,4 @@ class TestTickCandle:
         candle.update(Tick(timestamp=10, price=10.0, volume=0))
         candle.update(Tick(timestamp=20, price=20.0, volume=0))
         assert candle.volume == 0
-        assert candle.nof_ticks == 2
+        assert candle.num_ticks == 2
