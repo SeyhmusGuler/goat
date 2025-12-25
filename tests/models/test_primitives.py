@@ -6,7 +6,7 @@ from goat.models.primitives import MAX_TIMESTAMP_NS, MIN_TIMESTAMP_NS, Tick, Tim
 
 
 class TestTimestamp:
-    def test_validate_min_max_timestamp_constaints(self):
+    def test_validate_min_max_timestamp_constraints(self):
         assert 0 <= MIN_TIMESTAMP_NS <= MAX_TIMESTAMP_NS < 2**64
 
 
