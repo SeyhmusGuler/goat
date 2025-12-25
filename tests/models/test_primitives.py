@@ -238,7 +238,7 @@ class TestTickCandle:
         candle.update(Tick(timestamp=30, price=75.0, volume=1))
         assert candle.low == 25.0
 
-    def test_update_always_updates_close(self):
+    def test_update_updates_close_when_newest(self):
         candle = TickCandle(start_timestamp=0, max_ticks=10)
         candle.update(Tick(timestamp=10, price=10.0, volume=1))
         assert candle.close == 10.0
