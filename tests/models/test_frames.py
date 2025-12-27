@@ -281,8 +281,8 @@ class TestTimeCandleFrame:
         """Test that TimeCandleFrame inherits CandleFrame's volume validation.
 
         Note: Pandera-polars may not raise SchemaError with default settings
-        when the Field constraint (ge=0) is violated. This test documents
-        the actual behavior.
+        when the UInt64 type constraint for volume (non-negative integer) is
+        violated. This test documents the actual behavior.
         """
         df = pl.LazyFrame(
             {
