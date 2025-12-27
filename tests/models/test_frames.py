@@ -450,7 +450,7 @@ class TestEdgeCases:
 
         assert result.shape == (1, 5)
 
-    def test_nan_in_price_raises_error_with_coercion(self):
+    def test_nan_in_price_success(self):
         """Test that NaN values in price columns are handled appropriately."""
         df = pl.LazyFrame(
             {
@@ -461,16 +461,9 @@ class TestEdgeCases:
                 "volume": [1000],
             }
         ).with_columns(pl.col("volume").cast(pl.UInt64))
-        # NaN handling depends on pandera configuration
-        # This test documents the current behavior
-        try:
-            validated = CandleFrame.validate(df)
-            result = validated.collect()
-            # If validation passes, check that the NaN is preserved
-            assert result["open"].is_nan()[0]
-        except SchemaError:
-            # If validation fails, that's also acceptable behavior
-            pass
+        validated = CandleFrame.validate(df)
+        result = validated.collect()
+        assert result["open"].is_nan()[0]
 
     def test_inf_in_price_success(self):
         """Test that infinity values in price columns are handled appropriately."""
