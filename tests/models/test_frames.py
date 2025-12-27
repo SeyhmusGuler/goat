@@ -472,7 +472,7 @@ class TestEdgeCases:
             # If validation fails, that's also acceptable behavior
             pass
 
-    def test_inf_in_price_raises_error_with_coercion(self):
+    def test_inf_in_price_success(self):
         """Test that infinity values in price columns are handled appropriately."""
         df = pl.LazyFrame(
             {
@@ -483,16 +483,9 @@ class TestEdgeCases:
                 "volume": [1000],
             }
         ).with_columns(pl.col("volume").cast(pl.UInt64))
-        # Infinity handling depends on pandera configuration
-        # This test documents the current behavior
-        try:
-            validated = CandleFrame.validate(df)
-            result = validated.collect()
-            # If validation passes, check that the inf is preserved
-            assert result["open"].is_infinite()[0]
-        except SchemaError:
-            # If validation fails, that's also acceptable behavior
-            pass
+        validated = CandleFrame.validate(df)
+        result = validated.collect()
+        assert result["open"][0] == float("inf")
 
     @given(n_rows=st.integers(min_value=1, max_value=1000))
     @settings(max_examples=10)
