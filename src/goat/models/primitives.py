@@ -1,7 +1,7 @@
 from typing import Annotated, Self, overload
 
 import numpy as np
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, FiniteFloat, model_validator
 
 # Timestamp in nanoseconds since the Unix epoch
 MIN_TIMESTAMP_NS = 0
@@ -14,8 +14,19 @@ Volume = Annotated[int, Field(ge=0)]
 
 class Tick(BaseModel):
     timestamp: Timestamp
-    price: float = Field(description="Price in USD")
-    volume: Volume = Field(description="Volume")
+    price: FiniteFloat = Field(description="Price of the last trade in USD")
+    volume: Volume = Field(description="Volume of the last trade")
+
+
+class TickBidAsk(Tick):
+    bid_price: float = Field(description="Bid price after the last trade in USD")
+    ask_price: float = Field(description="Ask price after the last trade in USD")
+    bid_volume: Volume = Field(description="Bid volume after the last trade")
+    ask_volume: Volume = Field(description="Ask volume after the last trade")
+
+    @property
+    def spread(self) -> float:
+        return self.ask_price - self.bid_price
 
 
 class Candle(BaseModel):

@@ -9,10 +9,10 @@ from goat.models.primitives import MAX_TIMESTAMP_NS, MIN_TIMESTAMP_NS, Candle, T
 
 @st.composite
 def valid_numeric_candles(draw):
-    high = draw(st.floats().filter(lambda x: not np.isnan(x)))
-    low = draw(st.floats(max_value=high).filter(lambda x: not np.isnan(x)))
-    open = draw(st.floats(min_value=low, max_value=high).filter(lambda x: not np.isnan(x)))
-    close = draw(st.floats(min_value=low, max_value=high).filter(lambda x: not np.isnan(x)))
+    high = draw(st.floats(allow_nan=False, allow_infinity=False))
+    low = draw(st.floats(max_value=high, allow_nan=False, allow_infinity=False))
+    open = draw(st.floats(min_value=low, max_value=high, allow_nan=False, allow_infinity=False))
+    close = draw(st.floats(min_value=low, max_value=high, allow_nan=False, allow_infinity=False))
     volume = draw(st.integers(min_value=0))
     return {
         "high": high,
@@ -20,6 +20,18 @@ def valid_numeric_candles(draw):
         "open": open,
         "close": close,
         "volume": volume,
+    }
+
+
+@st.composite
+def valid_numeric_candles_from_four_floats(draw):
+    n1, n2, n3, n4 = draw(st.lists(st.floats(allow_nan=False, allow_infinity=False), min_size=4, max_size=4))
+    return {
+        "high": max(n1, n2, n3, n4),
+        "low": min(n1, n2, n3, n4),
+        "open": n1,
+        "close": n4,
+        "volume": 1,
     }
 
 
@@ -49,10 +61,30 @@ class TestTick:
         with pytest.raises(ValidationError):
             _: Tick = Tick(timestamp=MIN_TIMESTAMP_NS, price=1.0, volume=volume)
 
+    @given(st.floats(allow_nan=False, allow_infinity=False))
+    def test_tick_price_validation(self, price):
+        tick = Tick(timestamp=MIN_TIMESTAMP_NS, price=price, volume=1)
+        assert tick.price == price
+
+    def test_tick_nan_inf_prices_disallowed(self):
+        with pytest.raises(ValidationError):
+            _: Tick = Tick(timestamp=MIN_TIMESTAMP_NS, price=np.nan, volume=1)
+        with pytest.raises(ValidationError):
+            _: Tick = Tick(timestamp=MIN_TIMESTAMP_NS, price=np.inf, volume=1)
+        with pytest.raises(ValidationError):
+            _: Tick = Tick(timestamp=MIN_TIMESTAMP_NS, price=-np.inf, volume=1)
+
 
 class TestCandle:
     @given(valid_numeric_candles())
     def test_valid_candle(self, candle):
+        candle = Candle(**candle)
+        assert candle.low <= candle.open <= candle.high
+        assert candle.low <= candle.close <= candle.high
+        assert candle.volume >= 0
+
+    @given(valid_numeric_candles_from_four_floats())
+    def test_valid_candle_from_four_floats(self, candle):
         candle = Candle(**candle)
         assert candle.low <= candle.open <= candle.high
         assert candle.low <= candle.close <= candle.high
