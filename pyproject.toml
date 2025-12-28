@@ -37,6 +37,12 @@ dev = [
     "ty",
 ]
 
+ntb = [
+    "ipykernel",
+    "jupyter",
+    "matplotlib",
+]
+
 [tool.uv.build-backend]
 packages = ["goat"]
 

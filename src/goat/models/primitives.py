@@ -25,6 +25,25 @@ class Candle(BaseModel):
     close: float = Field(default=np.nan, description="Close price in USD")
     volume: Volume = Field(default=0, description="Volume")
 
+    # @model_validator(mode="after")
+    # def validate_numeric_values(self):
+    #     if not np.isnan(self.open) and not np.isnan(self.close):
+    #         if self.open < self.low:
+    #             raise ValueError("Candle open price must be greater than or equal to low price")
+    #         if self.close < self.low:
+    #             raise ValueError("Candle close price must be greater than or equal to low price")
+    #         if self.open > self.high:
+    #             raise ValueError("Candle open price must be less than or equal to high price")
+    #         if self.close > self.high:
+    #             raise ValueError("Candle close price must be less than or equal to high price")
+    #     if np.isnan(self.open) or np.isnan(self.close):
+    #         raise ValueError("Candle open and close prices must be numeric")
+    #     if self.high < self.low:
+    #         raise ValueError("Candle high price must be greater than or equal to low price")
+    #     if self.volume < 0:
+    #         raise ValueError("Candle volume must be non-negative")
+    #     return self
+
     def __str__(self):
         return f"Candle(open={self.open}, high={self.high}, low={self.low}, close={self.close}, volume={self.volume})"
 

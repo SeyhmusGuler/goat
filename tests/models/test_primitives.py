@@ -1,13 +1,70 @@
 import numpy as np
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 from pydantic import ValidationError
 
-from goat.models.primitives import MAX_TIMESTAMP_NS, MIN_TIMESTAMP_NS, Tick, TickCandle, TimeCandle
+from goat.models.primitives import MAX_TIMESTAMP_NS, MIN_TIMESTAMP_NS, Candle, Tick, TickCandle, TimeCandle
+
+
+@st.composite
+def valid_numeric_candles(draw):
+    high = draw(st.floats().filter(lambda x: not np.isnan(x)))
+    low = draw(st.floats(max_value=high).filter(lambda x: not np.isnan(x)))
+    open = draw(st.floats(min_value=low, max_value=high).filter(lambda x: not np.isnan(x)))
+    close = draw(st.floats(min_value=low, max_value=high).filter(lambda x: not np.isnan(x)))
+    volume = draw(st.integers(min_value=0))
+    return {
+        "high": high,
+        "low": low,
+        "open": open,
+        "close": close,
+        "volume": volume,
+    }
 
 
 class TestTimestamp:
     def test_validate_min_max_timestamp_constraints(self):
         assert 0 <= MIN_TIMESTAMP_NS <= MAX_TIMESTAMP_NS < 2**64
+
+
+class TestTick:
+    @given(st.integers().filter(lambda x: MIN_TIMESTAMP_NS <= x <= MAX_TIMESTAMP_NS))
+    def test_tick_timestamp_validation(self, timestamp):
+        tick = Tick(timestamp=timestamp, price=1.0, volume=1)
+        assert tick.timestamp == timestamp
+
+    @given(volume=st.integers().filter(lambda x: x >= 0))
+    def test_tick_volume_validation(self, volume):
+        tick = Tick(timestamp=MIN_TIMESTAMP_NS, price=1.0, volume=volume)
+        assert tick.volume == volume
+
+    @given(st.integers().filter(lambda x: x < MIN_TIMESTAMP_NS or x > MAX_TIMESTAMP_NS))
+    def test_tick_timestamp_validation_raises(self, timestamp):
+        with pytest.raises(ValidationError):
+            _: Tick = Tick(timestamp=timestamp, price=1.0, volume=1)
+
+    @given(st.integers().filter(lambda x: x < 0))
+    def test_tick_volume_validation_raises(self, volume):
+        with pytest.raises(ValidationError):
+            _: Tick = Tick(timestamp=MIN_TIMESTAMP_NS, price=1.0, volume=volume)
+
+
+class TestCandle:
+    @given(valid_numeric_candles())
+    def test_valid_candle(self, candle):
+        candle = Candle(**candle)
+        assert candle.low <= candle.open <= candle.high
+        assert candle.low <= candle.close <= candle.high
+        assert candle.volume >= 0
+
+    def test_nan_valued_candles(self):
+        candle = Candle(high=np.nan, low=np.nan, open=np.nan, close=np.nan, volume=0)
+        assert np.isnan(candle.high)
+        assert np.isnan(candle.low)
+        assert np.isnan(candle.open)
+        assert np.isnan(candle.close)
+        assert candle.volume == 0
 
 
 class TestTimeCandle:
