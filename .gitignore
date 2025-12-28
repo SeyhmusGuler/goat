@@ -34,3 +34,13 @@ goat.egg-info/*
 
 # secrets
 .env*
+
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+!notebooks/**/*.ipynb
+
+# parquet
+*.parquet
+!data/**/*.parquet
