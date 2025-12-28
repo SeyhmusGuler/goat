@@ -11,15 +11,13 @@ This example demonstrates the full GOAT trading pipeline:
 Run with: uv run python examples/run_ma_crossover_example.py
 """
 
-import math
 import random
 from datetime import datetime, timezone
 
 import polars as pl
 
-from goat.data_handler import Candle, HistoricDataHandler
-from goat.enums import Action, Direction, Symbol
-from goat.event import MarketEvent, SignalEvent
+from goat.data_handler import HistoricDataHandler
+from goat.enums import Action, Symbol
 from goat.execution import ExecutionHandler
 from goat.strategy import MovingAverageCrossStrategy
 
@@ -122,7 +120,7 @@ def generate_price_data(
 def print_header():
     """Print the example header."""
     print(f"\n{Colors.BLUE}{'=' * 80}")
-    print(f"  🐐 GOAT - Moving Average Crossover Trading Example")
+    print("  🐐 GOAT - Moving Average Crossover Trading Example")
     print(f"{'=' * 80}{Colors.RESET}\n")
 
 
@@ -191,7 +189,7 @@ def print_performance_summary(
     num_sells = sum(1 for t in trades if t["action"] == "SELL")
 
     print(f"\n{Colors.MAGENTA}{'=' * 80}")
-    print(f"  📊 PERFORMANCE SUMMARY")
+    print("  📊 PERFORMANCE SUMMARY")
     print(f"{'=' * 80}{Colors.RESET}\n")
 
     print(f"  {Colors.BOLD}Portfolio Value{Colors.RESET}")
@@ -256,7 +254,7 @@ def run_trading_example():
 
     # Setup components
     data_handler = HistoricDataHandler(df=df)
-    execution_handler = ExecutionHandler()
+    _ = ExecutionHandler()
 
     strategy = MovingAverageCrossStrategy(
         short_window=SHORT_WINDOW,
