@@ -404,7 +404,7 @@ class ExecutionHandler:
 
     def __init__(self, default_policy: ExecutionPolicyType = ExecutionPolicyType.IMMEDIATE):
         self._default_policy = default_policy
-        self._order_books: dict[Symbol, OrderBook] = defaultdict(lambda: None)  # type: ignore
+        self._order_books: dict[Symbol, OrderBook] = defaultdict(lambda: None)
         self._orders: dict[uuid.UUID, Order] = {}
         self._parent_child_map: dict[uuid.UUID, list[uuid.UUID]] = {}  # parent -> children
 
